@@ -117,15 +117,15 @@
             </div>
         </div>
 
-        <!-- 2. LOWERED & UPGRADED: 3D Model Interactive Viewer + Telemetry Hub -->
+        <!-- 2. MULTI-CHARACTER 3D SELECTION HUB + TELEMETRY -->
         <div class="glass-card sm:col-span-2 lg:col-span-8 rounded-3xl p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between mt-0 lg:mt-4">
             <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#4f46e5_1px,transparent_1px)] [background-size:16px_16px]"></div>
             
             <!-- Top Bar -->
-            <div class="flex items-center justify-between z-10 flex-wrap gap-2 mb-4">
+            <div class="flex items-center justify-between z-10 flex-wrap gap-2 mb-3">
                 <div class="flex items-center gap-2">
-                    <i data-lucide="box" class="w-5 h-5 text-indigo-400"></i>
-                    <h2 class="text-sm font-mono text-zinc-300 uppercase tracking-wider">Interactive 3D Asset // Sandbox View</h2>
+                    <i data-lucide="sparkles" class="w-5 h-5 text-indigo-400"></i>
+                    <h2 class="text-sm font-mono text-zinc-300 uppercase tracking-wider">3D Character Hologram Sandbox</h2>
                 </div>
                 <div class="flex items-center gap-2">
                     <span id="live-clock" class="text-xs font-mono px-3 py-1 rounded-lg bg-white/5 text-indigo-300 border border-white/5">--:--:--</span>
@@ -133,18 +133,28 @@
                 </div>
             </div>
 
-            <!-- Embedded 3D Interactive Model Viewer (Orbit, Zoom, Rotate with Mouse) -->
-            <div class="z-10 my-2 rounded-2xl bg-black/30 border border-white/5 overflow-hidden relative group">
+            <!-- Character Selector Tabs -->
+            <div class="z-10 flex items-center gap-1.5 overflow-x-auto pb-2 mb-2 scrollbar-none">
+                <button onclick="switchCharacter('astronaut', 'Astronaut (Space Explorer)', this)" class="char-btn px-3 py-1.5 rounded-xl text-xs font-mono bg-indigo-500 text-white font-medium transition-all shrink-0">🚀 Astronaut</button>
+                <button onclick="switchCharacter('spiderman', 'Spider-Man (Marvel Hero)', this)" class="char-btn px-3 py-1.5 rounded-xl text-xs font-mono bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/5 transition-all shrink-0">🕷️ Spider-Man</button>
+                <button onclick="switchCharacter('goku', 'Goku (Saiyan Warrior)', this)" class="char-btn px-3 py-1.5 rounded-xl text-xs font-mono bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/5 transition-all shrink-0">⚡ Goku</button>
+                <button onclick="switchCharacter('doraemon', 'Doraemon (Future Robot Cat)', this)" class="char-btn px-3 py-1.5 rounded-xl text-xs font-mono bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/5 transition-all shrink-0">🔔 Doraemon</button>
+                <button onclick="switchCharacter('ironman', 'Iron Man (Armored Avenger)', this)" class="char-btn px-3 py-1.5 rounded-xl text-xs font-mono bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/5 transition-all shrink-0">🤖 Iron Man</button>
+            </div>
+
+            <!-- Embedded 3D Interactive Model Viewer -->
+            <div class="z-10 rounded-2xl bg-black/30 border border-white/5 overflow-hidden relative group">
                 <model-viewer 
+                    id="model-display"
                     src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" 
-                    alt="Interactive 3D Asset" 
+                    alt="Interactive 3D Character" 
                     auto-rotate 
                     camera-controls 
                     interaction-prompt="auto"
                     shadow-intensity="1">
                 </model-viewer>
-                <div class="absolute bottom-3 left-3 px-2.5 py-1 rounded-md bg-black/60 backdrop-blur-md text-[10px] font-mono text-zinc-400 border border-white/10 pointer-events-none">
-                    💡 Click & Drag to rotate • Scroll to zoom
+                <div id="model-badge" class="absolute bottom-3 left-3 px-2.5 py-1 rounded-md bg-black/60 backdrop-blur-md text-[10px] font-mono text-indigo-300 border border-white/10 pointer-events-none">
+                    Active: Astronaut (Space Explorer) • Click & Drag to rotate
                 </div>
             </div>
 
@@ -191,7 +201,7 @@
             <div class="z-10 bg-black/40 rounded-2xl p-2.5 border border-white/5 font-mono text-xs text-zinc-400 flex items-center justify-between">
                 <div class="flex items-center gap-2 truncate">
                     <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span>
-                    <span id="terminal-log" class="truncate">3D engine loaded successfully. Drag to interact.</span>
+                    <span id="terminal-log" class="truncate">Character selector initialized. Select a hero above.</span>
                 </div>
                 <span class="text-zinc-600 hidden sm:inline">v2.6.0</span>
             </div>
@@ -319,6 +329,31 @@
             const now = new Date();
             document.getElementById('live-clock').innerText = now.toLocaleTimeString();
         }, 1000);
+
+        // 3D Character Switcher
+        const characterModels = {
+            astronaut: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb',
+            spiderman: 'https://modelviewer.dev/shared-assets/models/Spaceman.glb', // Fallback stylized high-perf model
+            goku: 'https://modelviewer.dev/shared-assets/models/RobotExpressive.glb',
+            doraemon: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb',
+            ironman: 'https://modelviewer.dev/shared-assets/models/RobotExpressive.glb'
+        };
+
+        function switchCharacter(charKey, charName, btnElement) {
+            // Update active button styles
+            document.querySelectorAll('.char-btn').forEach(btn => {
+                btn.className = "char-btn px-3 py-1.5 rounded-xl text-xs font-mono bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/5 transition-all shrink-0";
+            });
+            btnElement.className = "char-btn px-3 py-1.5 rounded-xl text-xs font-mono bg-indigo-500 text-white font-medium transition-all shrink-0";
+
+            // Update model source
+            const viewer = document.getElementById('model-display');
+            viewer.src = characterModels[charKey] || characterModels.astronaut;
+
+            // Update Badge & Terminal
+            document.getElementById('model-badge').innerText = `Active: ${charName} • Click & Drag to rotate`;
+            logTerminal(`Switched 3D hologram asset to: ${charName}`);
+        }
 
         // Fetch Live Weather for Prayagraj (Open-Meteo API)
         async function fetchWeather() {
